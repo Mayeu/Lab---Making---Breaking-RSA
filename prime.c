@@ -18,7 +18,6 @@
 #include <stdio.h>
 #include <gmp.h>                /* needed to manipulate big-fat-ass int */
 #include <time.h>
-#include "prime.h"
 
 /*
  * Global variable time

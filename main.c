@@ -21,31 +21,17 @@
 #include <time.h>
 #include <unistd.h>
 #include <string.h>
+#include <limits.h>
 #include "prime.h"
 #include "rsa.h"
 
-/*
- * Define
- */
-
-enum { ATTACK, HELP, TEST };
-
-/*
- * Functions declarations
- */
-
-void            all_test(void);
-void            ed_test(void);
-void            prime_test(void);
-void            key_test(void);
-void            breakit_test(void);
-void            attack(char *file, unsigned long k);
+	 enum{ATTACK, HELP, TEST} ;
 
 /*
  * Encryptien/Decryption test
  */
 void
-ed_test(void)
+ed_test()
 {
     mpz_t           n,
                     a,
@@ -108,7 +94,7 @@ ed_test(void)
  * Prime generator test
  */
 void
-prime_test(void)
+prime_test()
 {
     mpz_t           p;
 
@@ -126,7 +112,7 @@ prime_test(void)
  * Keygen, encryption and decryption with generated key
  */
 void
-key_test(void)
+key_test()
 {
     mpz_t           e,
                     d,
@@ -173,7 +159,7 @@ key_test(void)
  * Break test
  */
 void
-breakit_test(void)
+breakit_test()
 {
     mpz_t           n,
                     e,
@@ -322,14 +308,11 @@ int
 main(int argc, char **argv)
 {
     int             k,
-                    flag,
+						  flag,
                     c;
 
-    char           *file;
-
+	 char *file;
     k = 32;
-    flag = HELP;
-    file = NULL;
 
     if (argc == 1) {
         printf("Please provide option or -h");
@@ -342,26 +325,26 @@ main(int argc, char **argv)
             printf("Not yet implemented ^^\n");
             exit(0);
         case 't':
-            flag = TEST;
+				flag = TEST;
             break;
         case 'k':
             k = atoi(optarg);
             break;
         case 'a':
-            flag = ATTACK;
-            file = optarg;
+				flag = ATTACK;
+				file = optarg ;
             break;
         }
 
 
-    switch (flag) {
-    case TEST:
-        all_test();
-        break;
+	 switch (flag) {
+		 case TEST:
+			 all_test();
+			 break;
 
-    case ATTACK:
-        attack(file, k);
-        break;
-    }
+		 case ATTACK:
+			 attack(file, k);
+			 break;
+	 }
     return 0;
 }
