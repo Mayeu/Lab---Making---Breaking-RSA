@@ -20,6 +20,7 @@
 #include <time.h>
 #include <math.h>
 #include "prime.h"
+#include "rsa.h"
 
 /*
  * This is the Square and Multiply functions.
@@ -113,7 +114,6 @@ keygen(mpz_t e, mpz_t d, mpz_t n)
                     tmp,
                     log2;
     gmp_randstate_t state;      /* random init stat */
-    int             i;
 
     gmp_randinit_default(state);
     gmp_randseed_ui(state, time(NULL));
