@@ -1,7 +1,7 @@
 # Compiler
 CC = gcc
 # Compiler flags
-CFLAGS = -g #-Wall -Wmissing-prototypes -Werror -pedantic
+CFLAGS = -g -Wall -Wmissing-prototypes -Werror -std=gnu99 -pedantic
 # Compiler optimisation level
 CCOPT = -O3
 # Linker flags
@@ -38,7 +38,9 @@ $(BIN)/%.o : $(SRC)/%.c
 indent :
 	indent -orig -nut main.c
 	indent -orig -nut rsa.c
+	indent -orig -nut rsa.h
 	indent -orig -nut prime.c
+	indent -orig -nut prime.h
 
 clean :
 	rm -rf $(BIN)/$(EXEC) $(BIN)/*.o

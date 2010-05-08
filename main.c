@@ -25,13 +25,28 @@
 #include "prime.h"
 #include "rsa.h"
 
-	 enum{ATTACK, HELP, TEST} ;
+/*
+ * Define
+ */
+
+enum { ATTACK, HELP, TEST };
+
+/*
+ * Functions declarations
+ */
+
+void            all_test(void);
+void            ed_test(void);
+void            prime_test(void);
+void            key_test(void);
+void            breakit_test(void);
+void            attack(char *file, unsigned long k);
 
 /*
  * Encryptien/Decryption test
  */
 void
-ed_test()
+ed_test(void)
 {
     mpz_t           n,
                     a,
@@ -94,7 +109,7 @@ ed_test()
  * Prime generator test
  */
 void
-prime_test()
+prime_test(void)
 {
     mpz_t           p;
 
@@ -112,7 +127,7 @@ prime_test()
  * Keygen, encryption and decryption with generated key
  */
 void
-key_test()
+key_test(void)
 {
     mpz_t           e,
                     d,
@@ -159,7 +174,7 @@ key_test()
  * Break test
  */
 void
-breakit_test()
+breakit_test(void)
 {
     mpz_t           n,
                     e,
@@ -218,7 +233,7 @@ breakit_test()
  * all the test
  */
 void
-all_test()
+all_test(void)
 {
 
     ed_test();                  /* encryption/decryption test */
@@ -308,11 +323,14 @@ int
 main(int argc, char **argv)
 {
     int             k,
-						  flag,
+                    flag,
                     c;
 
-	 char *file;
+    char           *file;
+
     k = 32;
+    flag = HELP;
+    file = NULL;
 
     if (argc == 1) {
         printf("Please provide option or -h");
@@ -325,26 +343,26 @@ main(int argc, char **argv)
             printf("Not yet implemented ^^\n");
             exit(0);
         case 't':
-				flag = TEST;
+            flag = TEST;
             break;
         case 'k':
             k = atoi(optarg);
             break;
         case 'a':
-				flag = ATTACK;
-				file = optarg ;
+            flag = ATTACK;
+            file = optarg;
             break;
         }
 
 
-	 switch (flag) {
-		 case TEST:
-			 all_test();
-			 break;
+    switch (flag) {
+    case TEST:
+        all_test();
+        break;
 
-		 case ATTACK:
-			 attack(file, k);
-			 break;
-	 }
+    case ATTACK:
+        attack(file, k);
+        break;
+    }
     return 0;
 }
