@@ -21,6 +21,8 @@
 #include <time.h>
 #include <unistd.h>
 #include <string.h>
+#include <math.h>
+
 #include "prime.h"
 #include "rsa.h"
 
@@ -237,7 +239,19 @@ breakit_test(void)
 
     printf("\n3. Try to break it\n");
     mpz_set_ui(x, 0);
-    breakit(c, e, n, 32, x);
+    unsigned long   array_size = (unsigned long) pow(2, 16);
+    mpz_t          *inv_array =
+        (mpz_t *) malloc(array_size * sizeof(mpz_t));
+
+    /*
+     * Build the table once upfront 
+     */
+    build_table(32, e, n, inv_array);
+
+    /*
+     * Break it 
+     */
+    breakit(c, e, n, 32, x, inv_array);
 
     printf("found plain = ");
     mpz_out_str(stdout, 10, x);
@@ -317,10 +331,26 @@ attack(char *f, unsigned long k)
     mpz_init(c);
     mpz_init(p);
 
+    /*
+     * Allocate the array for the result
+     */
+    unsigned long   array_size = (unsigned long) pow(2, k / 2.0);
+    mpz_t          *inv_array =
+        (mpz_t *) malloc(array_size * sizeof(mpz_t));
+
     timer = clock();
-    while (fgets(cc, 256, file) && cc != NULL) {
+
+    /*
+     * Build the table once upfront 
+     */
+    build_table(k, key, n, inv_array);
+
+    while (fgets(cc, 256, file) != NULL) {
         mpz_set_str(c, cc, 10);
-        breakit(c, key, n, k, p);
+        /*
+         * Break the Cipher 
+         */
+        breakit(c, key, n, k, p, inv_array);
 
         ip = mpz_get_ui(p);
 
@@ -332,12 +362,12 @@ attack(char *f, unsigned long k)
     }
 
     printf("\nTime: %lf\n", (double) (clock() - timer) / CLOCKS_PER_SEC);
-
     fclose(file);
 
     /*
      * Free Ressources
      */
+    free(inv_array);
     mpz_clear(key);
     mpz_clear(n);
     mpz_clear(c);

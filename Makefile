@@ -1,7 +1,9 @@
 # Compiler
 CC = gcc
+
 # Compiler flags
-CFLAGS = -g -Wall -Wmissing-prototypes -Werror -std=gnu99 -pedantic
+# CFLAGS = -g -Wall -Wmissing-prototypes -Werror -std=gnu99 -pedantic
+
 # Compiler optimisation level
 CCOPT = -O3 -Fast
 # Linker flags
@@ -35,7 +37,9 @@ $(BIN)/$(EXEC) : $(EXEC_OBJECTS)
 	$(CC) $^ -o $@ $(LDFLAGS)
 
 $(BIN)/%.o : $(SRC)/%.c
-	$(CC) $(CCOPT) $(IFLAGS) -c $< -o $@ $(CFLAGS)
+	$(CC) $(CCOPT) $(IFLAGS) -c $< -o $@ 
+
+# $(CFLAGS)
 
 indent :
 	indent -orig -nut main.c

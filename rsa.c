@@ -23,6 +23,13 @@
 #include "prime.h"
 #include "rsa.h"
 
+
+// Global Array and Hash 
+// mpz_t *array;
+GHashTable     *hash;
+
+
+
 /*
  * This is the Square and Multiply functions.
  * This provide encryption & decryption of RSA
@@ -200,35 +207,19 @@ keygen(mpz_t e, mpz_t d, mpz_t n)
 
 }
 
-/*
- * Break the rsa: the brutal way
- * c: cypher
- * e: e
- * n: n
- * k: the good k (size of the key ?)
- * p: the plain version
- */
+
+
 void
-breakit(mpz_t c, mpz_t e, mpz_t n, unsigned long k, mpz_t p)
+build_table(unsigned long k, mpz_t e, mpz_t n, mpz_t * array)
 {
-    mpz_t           local_p,
-                    local_c,
-                    tmp,
-                   *array;
-    GHashTable     *hash;
-    unsigned long   array_size,
-                    i,
-                    j;
+
+    mpz_t           tmp,
+                    local_p,
+                    local_c;
+    unsigned long   i = 0;
+    unsigned long   array_size = (long) pow(2, k / 2.0);
     char           *key_str,
-                   *value_str,
-                   *val;
-
-    array_size = (long) pow(2, k / 2.0);
-
-    /*
-     * allocate the array for the result
-     */
-    array = (mpz_t *) malloc(array_size * sizeof(mpz_t));
+                   *value_str;
 
     /*
      * Create the hash
@@ -241,31 +232,57 @@ breakit(mpz_t c, mpz_t e, mpz_t n, unsigned long k, mpz_t p)
     mpz_init(tmp);
     mpz_init(local_p);
     mpz_init(local_c);
+
     for (i = 1; i < array_size; i++) {
         mpz_set_ui(local_p, i); /* plain = i */
         square_and_mult(local_p, e, n, local_c);        /* c = i^e mod n */
-
+        /*
+         * Allocate mem for string 
+         */
         key_str = mpz_get_str(NULL, 16, local_c);       /* c to HEX string 
                                                          */
+
         value_str = mpz_get_str(NULL, 10, local_p);     /* p to string */
         g_hash_table_insert(hash, key_str, value_str);  /* add it to the
                                                          * hash */
 
-        mpz_init(array[i]); /* initialize the mpz in the array */
+        mpz_init(array[i]);     /* initialize the mpz in the array */
         mul_inv(array[i], n, local_c);  /* populate the array */
     }
+    // Free Resources
+    mpz_clear(local_p);
+    mpz_clear(local_c);
+}
 
+
+/*
+ * Break the rsa: the brutal way
+ * c: cipher
+ * e: e
+ * n: n
+ * k: the good k (size of the key ?)  
+ * p: the plain version
+ */
+void
+breakit(mpz_t c, mpz_t e, mpz_t n, unsigned long k, mpz_t p, mpz_t * array)
+{
+    mpz_t           tmp;
+    unsigned long   array_size = (long) pow(2, k / 2.0);
+
+    unsigned long   i,
+                    j;
+    char           *key_str,
+                   *val;
+    mpz_init(tmp);
     /*
      * Crack it baby!
      */
-    // val = (char *) malloc(200 * sizeof(char));
     for (i = 1; i < array_size; i++) {
-        // mul_inv(tmp, n, array[i]); /* tmp = inv(i^e mod n, n) */
+
         mpz_mul(tmp, c, array[i]);      /* tmp = c * inv(i^e mod n, n) */
         mpz_mod(tmp, tmp, n);   /* tmp = c * inv(i^e mod n, n) mod n */
 
         key_str = mpz_get_str(NULL, 16, tmp);   /* c to HEX string */
-
         /*
          * Hash search
          */
@@ -284,8 +301,5 @@ breakit(mpz_t c, mpz_t e, mpz_t n, unsigned long k, mpz_t p)
     /*
      * Free Ressources
      */
-    mpz_clear(local_p);
-    mpz_clear(local_c);
     mpz_clear(tmp);
-    free(array);
 }
