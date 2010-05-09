@@ -42,8 +42,11 @@ isprime(mpz_t p)
                     tmp,
                     x;
     int             i,
+                    ret,
                     j;
     unsigned long   s;
+
+    ret = 1;
 
     /*
      * ensure that p is odd and greater than 3 
@@ -92,16 +95,26 @@ isprime(mpz_t p)
 
         for (j = 1; j < s; j++) {
             mpz_powm_ui(x, x, 2, p);    /* do x = x^2 mod p */
-            if (!mpz_cmp_ui(x, 1))      /* x == 1 */
-                return 0;
-
-            if (!mpz_cmp(x, tmp))       /* x == p-1 */
+            if (!mpz_cmp_ui(x, 1)
+                || !mpz_cmp(x, tmp))    /* x == 1 */
                 break;
         }
-        if (mpz_cmp(x, tmp))    /* x != p-1 */
-            return 0;
+
+        if (mpz_cmp(x, tmp) || !mpz_cmp_ui(x, 1)) {     /* x != p-1 */
+            ret = 0;
+            break;
+        }
     }
-    return 1;
+
+    /*
+     * Free Ressources
+     */
+    gmp_randclear(st);
+    mpz_clear(a);
+    mpz_clear(d);
+    mpz_clear(tmp);
+
+    return ret;
 }
 
 /*
@@ -123,6 +136,11 @@ primegen(mpz_t p)
     do {
         mpz_urandomb(p, state, PRIME_LENGTH);
     } while (!isprime(p));
+
+    /*
+     * Free Ressources
+     */
+    gmp_randclear(state);
 }
 
 /*

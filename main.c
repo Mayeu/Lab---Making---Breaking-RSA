@@ -55,8 +55,6 @@ ed_test(void)
                     p,
                     c;
 
-    // x = (mpz_t *) malloc(sizeof(mpz_t));
-
     /*
      * little test of Square & Multiply functions
      * Using exemple in the book page 177 (Example 5.5)
@@ -103,6 +101,16 @@ ed_test(void)
         printf("zOMG !! It's working!! Oo\n");
     else
         printf("fail n00b!!\n");
+
+    /*
+     * Free Ressources !
+     */
+    mpz_clear(n);
+    mpz_clear(a);
+    mpz_clear(b);
+    mpz_clear(x);
+    mpz_clear(p);
+    mpz_clear(c);
 }
 
 /*
@@ -120,7 +128,12 @@ prime_test(void)
     primegen(p);
     printf("This is a prime number: ");
     mpz_out_str(stdout, 10, p);
-    printf("\nYep really! Test it with: openssl prime <number>");
+    printf("\nYep really! Test it with: openssl prime <number>\n");
+
+    /*
+     * Free Ressources
+     */
+    mpz_clear(p);
 }
 
 /*
@@ -168,6 +181,15 @@ key_test(void)
     printf("\ngot: ");
     mpz_out_str(stdout, 10, x);
     printf("\n");
+
+    /*
+     * Free Ressources !
+     */
+    mpz_clear(e);
+    mpz_clear(d);
+    mpz_clear(n);
+    mpz_clear(x);
+    mpz_clear(c);
 }
 
 /*
@@ -226,6 +248,15 @@ breakit_test(void)
         printf("zOMG !! It's working!! Oo\n");
     else
         printf("fail n00b!!\n");
+
+    /*
+     * Free Ressources !
+     */
+    mpz_clear(n);
+    mpz_clear(e);
+    mpz_clear(x);
+    mpz_clear(c);
+    mpz_clear(d);
 }
 
 
@@ -291,28 +322,28 @@ attack(char *f, unsigned long k)
     while (fgets(cc, 256, file) && cc != NULL) {
         mpz_set_str(c, cc, 10);
         breakit(c, key, n, k, p);
-        // printf("cypher: ");
-        // mpz_out_str(stdout, 10, c);
-        // printf("\nplain: ");
-        // mpz_out_str(stdout, 10, p);
-        // printf("\n");
 
         ip = mpz_get_ui(p);
-        // printf("%lu\n", ip);
-        // printf("%c\n", ip & 0x0ff);
-        // printf("%c\n", ip >> 8 & 0x0ff);
+
         cp[1] = (char) (ip & 0x0ff);
         cp[0] = (char) (ip >> 8 & 0x0ff);
         cp[2] = '\0';
 
         printf(cp);
         fflush(stdout);
-        // printf("\n");
     }
 
     printf("\nTime: %lf\n", (double) (clock() - timer) / CLOCKS_PER_SEC);
 
     fclose(file);
+
+    /*
+     * Free Ressources
+     */
+    mpz_clear(key);
+    mpz_clear(n);
+    mpz_clear(c);
+    mpz_clear(p);
 }
 
 /*
@@ -325,7 +356,6 @@ main(int argc, char **argv)
     int             k,
                     flag,
                     c;
-
     char           *file;
 
     k = 32;
@@ -364,5 +394,6 @@ main(int argc, char **argv)
         attack(file, k);
         break;
     }
+
     return 0;
 }

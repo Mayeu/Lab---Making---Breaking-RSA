@@ -54,6 +54,11 @@ square_and_mult(mpz_t x, mpz_t c, mpz_t n, mpz_t r)
     }
 
     mpz_set(r, z);
+
+    /*
+     * Free Ressources !
+     */
+    mpz_clear(z);
 }
 
 /*
@@ -71,6 +76,9 @@ mul_inv(mpz_t d, mpz_t a, mpz_t b)
                     q,
                     r,
                     tmp;
+    int             ret;
+
+    ret = 1;
 
     mpz_init_set(a0, a);
     mpz_init_set(b0, b);
@@ -93,11 +101,22 @@ mul_inv(mpz_t d, mpz_t a, mpz_t b)
     }
 
     if (mpz_cmp_ui(b0, 1) != 0)
-        return 0;               /* no inverse!! */
+        ret = 0;                /* no inverse!! */
     else
         mpz_set(d, t);
 
-    return 1;
+    /*
+     * Free Ressources
+     */
+    mpz_clear(a0);
+    mpz_clear(b0);
+    mpz_clear(t0);
+    mpz_clear(t);
+    mpz_clear(q);
+    mpz_clear(r);
+    mpz_clear(tmp);
+
+    return ret;
 }
 
 /*
@@ -114,7 +133,6 @@ keygen(mpz_t e, mpz_t d, mpz_t n)
                     tmp,
                     log2;
     gmp_randstate_t state;      /* random init stat */
-    // int i;
 
     gmp_randinit_default(state);
     gmp_randseed_ui(state, time(NULL));
@@ -169,6 +187,17 @@ keygen(mpz_t e, mpz_t d, mpz_t n)
             ("Mayday mayday! Something went wrong! They are not inversible Oo Gonna explode !!");
         exit(-666);
     }
+
+    /*
+     * Free Ressources
+     */
+    mpz_clear(p);
+    mpz_clear(q);
+    mpz_clear(phi);
+    mpz_clear(tmp);
+    mpz_clear(log2);
+    gmp_randclear(state);       /* random init stat */
+
 }
 
 /*
@@ -184,17 +213,13 @@ breakit(mpz_t c, mpz_t e, mpz_t n, unsigned long k, mpz_t p)
 {
     mpz_t           tmp,
                    *array;
-    double          kd;
+    // double kd;
     unsigned long   array_size,
                     i,
                     j;
 
-    // printf("!!!!!!!!!!!!!!!!Debug: %lu\n", k);
-    kd = k / 2.0;
-    // printf("!!!!!!!!!!!!!!!!Debug: %f\n", kd);
-    array_size = (long) pow(2, kd);
-    // printf("!!!!!!!!!!!!!!!!Debug: %lu\n", array_size);
-
+    // kd = k / 2.0;
+    array_size = (long) pow(2, k / 2.0);
 
     /*
      * allocate the array for the result
@@ -227,5 +252,10 @@ breakit(mpz_t c, mpz_t e, mpz_t n, unsigned long k, mpz_t p)
         }
     }
 
+
+    /*
+     * Free Ressources
+     */
+    mpz_clear(tmp);
     free(array);
 }

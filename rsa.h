@@ -28,4 +28,44 @@ void
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
               breakit(mpz_t c, mpz_t e, mpz_t n, unsigned long k, mpz_t p);
