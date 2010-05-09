@@ -3,9 +3,11 @@ CC = gcc
 # Compiler flags
 CFLAGS = -g -Wall -Wmissing-prototypes -Werror -std=gnu99 -pedantic
 # Compiler optimisation level
-CCOPT = -O3
+CCOPT = -O3 -Fast
 # Linker flags
-LDFLAGS = -lgmp -lm
+LDFLAGS = -lgmp -lm -lglib-2.0
+# Include flags
+IFLAGS = -I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include
 
 # *********************************************************
 #  Folders & files variable
@@ -33,7 +35,7 @@ $(BIN)/$(EXEC) : $(EXEC_OBJECTS)
 	$(CC) $^ -o $@ $(LDFLAGS)
 
 $(BIN)/%.o : $(SRC)/%.c
-	$(CC) $(CCOPT) -c $< -o $@ $(CFLAGS)
+	$(CC) $(CCOPT) $(IFLAGS) -c $< -o $@ $(CFLAGS)
 
 indent :
 	indent -orig -nut main.c

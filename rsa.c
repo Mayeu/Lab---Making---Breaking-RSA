@@ -19,6 +19,7 @@
 #include <gmp.h>                /* needed to manipulate big-fat-ass int */
 #include <time.h>
 #include <math.h>
+#include <glib.h>
 #include "prime.h"
 #include "rsa.h"
 
@@ -43,8 +44,7 @@ square_and_mult(mpz_t x, mpz_t c, mpz_t n, mpz_t r)
      * mpz_sizeinbase return the size of the number in the specified base 
      */
     for (i = mpz_sizeinbase(c, 2) - 1; i >= 0; i--) {
-        mpz_mul(z, z, z);       /* z = z*z */
-        mpz_mod(z, z, n);       /* z = z mod n */
+        mpz_powm_ui(z, z, 2, n);        /* z = z^2 mod n */
 
         if (mpz_tstbit(c, i)) { /* mpz_tstbit return the value of the bit
                                  * i */
@@ -211,14 +211,18 @@ keygen(mpz_t e, mpz_t d, mpz_t n)
 void
 breakit(mpz_t c, mpz_t e, mpz_t n, unsigned long k, mpz_t p)
 {
-    mpz_t           tmp,
+    mpz_t           local_p,
+                    local_c,
+                    tmp,
                    *array;
-    // double kd;
+    GHashTable     *hash;
     unsigned long   array_size,
                     i,
                     j;
+    char           *key_str,
+                   *value_str,
+                   *val;
 
-    // kd = k / 2.0;
     array_size = (long) pow(2, k / 2.0);
 
     /*
@@ -227,35 +231,61 @@ breakit(mpz_t c, mpz_t e, mpz_t n, unsigned long k, mpz_t p)
     array = (mpz_t *) malloc(array_size * sizeof(mpz_t));
 
     /*
-     * let's go baby!
+     * Create the hash
+     */
+    hash = g_hash_table_new(g_str_hash, g_str_equal);
+
+    /*
+     * Populate the hash and array
      */
     mpz_init(tmp);
-    for (i = 1; i <= array_size; i++) {
-        mpz_set_ui(tmp, i);
-        mpz_init(array[i - 1]); /* initialize the mpz in the array */
-        square_and_mult(tmp, e, n, array[i - 1]);
+    mpz_init(local_p);
+    mpz_init(local_c);
+    for (i = 1; i < array_size; i++) {
+        mpz_set_ui(local_p, i); /* plain = i */
+        square_and_mult(local_p, e, n, local_c);        /* c = i^e mod n */
+
+        key_str = mpz_get_str(NULL, 16, local_c);       /* c to HEX string 
+                                                         */
+        value_str = mpz_get_str(NULL, 10, local_p);     /* p to string */
+        g_hash_table_insert(hash, key_str, value_str);  /* add it to the
+                                                         * hash */
+
+        mpz_init(array[i]); /* initialize the mpz in the array */
+        mul_inv(array[i], n, local_c);  /* populate the array */
     }
 
-    for (i = 0; i < array_size; i++) {
-        mul_inv(tmp, n, array[i]);      /* tmp = inv(i^e mod n, n) */
-        mpz_mul(tmp, c, tmp);
+    /*
+     * Crack it baby!
+     */
+    // val = (char *) malloc(200 * sizeof(char));
+    for (i = 1; i < array_size; i++) {
+        // mul_inv(tmp, n, array[i]); /* tmp = inv(i^e mod n, n) */
+        mpz_mul(tmp, c, array[i]);      /* tmp = c * inv(i^e mod n, n) */
         mpz_mod(tmp, tmp, n);   /* tmp = c * inv(i^e mod n, n) mod n */
-        for (j = 0; j < array_size; j++) {
-            if (mpz_cmp(tmp, array[j]) == 0) {
-                mpz_set_ui(tmp, 1);
-                mpz_mul_ui(tmp, tmp, i + 1);
-                mpz_mul_ui(tmp, tmp, j + 1);
-                mpz_mod(tmp, tmp, n);
-                mpz_set(p, tmp);
-                return;
-            }
+
+        key_str = mpz_get_str(NULL, 16, tmp);   /* c to HEX string */
+
+        /*
+         * Hash search
+         */
+        val = g_hash_table_lookup(hash, key_str);
+        if (val != NULL) {
+            j = atoi(val);
+            mpz_set_ui(tmp, 1); /* tmp = 1 */
+            mpz_mul_ui(tmp, tmp, i);    /* tmp = i */
+            mpz_mul_ui(tmp, tmp, j);    /* tmp = i*j */
+            mpz_mod(tmp, tmp, n);       /* tmp = i*j mod n */
+            mpz_set(p, tmp);    /* set the plain text */
+            break;
         }
     }
-
 
     /*
      * Free Ressources
      */
+    mpz_clear(local_p);
+    mpz_clear(local_c);
     mpz_clear(tmp);
     free(array);
 }
